@@ -55,17 +55,37 @@
 
         var tagName = (typeof this.$element.prop === 'function') ?
             this.$element.prop('tagName') : this.$element.attr('tagName');
-
+				
+        var createNewList = false; //tracking whether we're using an existing list, or creating a new one
         if (tagName === 'UL') {
             this.$listContainer = this.$element;
         } else {
             this.$listContainer = $('<ul></ul>');
+            createNewList = true;
         }
 
         this.$listContainer.addClass(this.options.paginationClass);
 
         if (tagName !== 'UL') {
-            this.$element.append(this.$listContainer);
+		        var thisObject = this; //variable to keep track of "this" in the each function
+
+            //if we're creating a new list and there are more than one target element
+            //create a clone of each list, append it and re-assign to the $listContainer
+            //this will let us create pagination on multiple wrapper elements that are not lists
+            if (createNewList && this.$element.length > 1) {
+                var lists = $([]);
+
+                this.$element.each(function() {
+                    var clonedList = thisObject.$listContainer.clone();
+                    lists = lists.add(clonedList);
+                    $(this).append(clonedList);
+                });
+
+                thisObject.$listContainer = lists;
+
+            } else {
+                $this.append(thisObject.$listContainer);
+            }
         }
 
         if (this.options.initiateStartPageClick) {
